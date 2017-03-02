@@ -35,8 +35,6 @@ function onYouTubePlayerAPIReady() {
     videoStartTime = params.videostart || videoStartTime;
     videoEndTime = params.videoend || videoEndTime;
 
-    console.log(params);
-
     video = new YT.Player('ytplayer-video', {
         videoId: videoURL,
         height: "100%",
@@ -57,7 +55,6 @@ function onYouTubePlayerAPIReady() {
         events: {
             'onReady': onVideoPlayerReady,
             'onStateChange': onVideoStateChange
-
         }
         
     });
@@ -121,6 +118,13 @@ function onVideoStateChange(event) {
     if (event.data == YT.PlayerState.PLAYING) {
         // or unpause....
         audio.unMute();
+    }
+
+    if (event.data == YT.PlayerState.ENDED) {
+        audio.seekTo(audioStartTime);
+        video.playVideo();
+        video.seekTo(videoStartTime);
+        
     }
 }
 
