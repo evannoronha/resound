@@ -8,6 +8,10 @@ firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 // Replace the 'ytplayer' element with an <iframe> and
 // YouTube player after the API code downloads.
 var video, audio;
+var audioStartTime = 0;
+var videoStartTime = 0;
+var audioEndTime = 0;
+var videoEndTime = 0;
 
 function onYouTubePlayerAPIReady() {
 
@@ -24,13 +28,12 @@ function onYouTubePlayerAPIReady() {
         params[nv[0]] = nv[1] || true;
     }
 
-    if (params.video) {
-        videoURL = params.video;
-    }
-
-    if (params.audio) {
-        musicURL = params.audio;
-    }
+    videoURL = params.video || videoURL;
+    musicURL = params.audio || musicURL;
+    audioStartTime = params.audiostart || audioStartTime;
+    audioEndTime = params.audioend || audioEndTime;
+    videoStartTime = params.videostart || videoStartTime;
+    videoEndTime = params.videoend || videoEndTime;
 
     console.log(params);
 
@@ -43,8 +46,8 @@ function onYouTubePlayerAPIReady() {
             iv_load_policy: 3,
             modestbranding: 1,
             controls: 0,
-            start:0,
-            //end: 100,
+            start:videoStartTime,
+            end: videoEndTime,
             rel: 0,
             autoplay: 1,
             showinfo: 0,
@@ -52,7 +55,9 @@ function onYouTubePlayerAPIReady() {
             mute: 1
         },
         events: {
-            'onReady': onPlayerReady
+            'onReady': onVideoPlayerReady,
+            'onStateChange': onVideoStateChange
+
         }
         
     });
@@ -65,48 +70,63 @@ function onYouTubePlayerAPIReady() {
             iv_load_policy: 3,
             modestbranding: 1,
             controls: 0,
-            start:5,
+            start:audioStartTime,
+            end:audioEndTime,
             rel: 0,     
             autoplay: 1,
             showinfo: 0,
-            disablekb: 1
+            disablekb: 1,
+            events: {
+                'onReady': onAudioPlayerReady,
+                'onStateChange': onAudioStateChange
+            }
         }
-
     });
-
-    video.addEventListener("onStateChange", "onVideoStateChange");
-    audio.addEventListener("onStateChange", "onAudioStateChange");
-
 }
 
-function onPlayerReady(event) {
+function onVideoPlayerReady(event) {
     video.mute();
 }
 
-
-function onAudioStateChange(event) {
-    if (event.data == YT.PlayerState.ENDED) {
-        event.target.seekTo(5);
-        event.target.playVideo();
-    }
-}
-
-function onVideoStateChange(event) {
-    if (event.data == YT.PlayerState.ENDED) {
+// I'm having some problems adding functions to the plater objects. neither of these work.
+function onAudioPlayerReady(event) {
+    audio.fadeOut = new function() {
         for (var i = 100; i >= 0; i -= 5) {
             audio.setVolume(i);
             sleep(400);
         }
     }
+
+    audio.fadeIn = new function() {
+        for (var i = 0; i <= 100; i += 5) {
+            audio.setVolume(i);
+            sleep(400);
+        }
+    }    
+}
+
+
+function onAudioStateChange(event) {
+    if (event.data == YT.PlayerState.ENDED) {
+        event.target.seekTo(AUDIO_START_TIME);
+        event.target.playVideo();
+    }
+}
+
+function onVideoStateChange(event) {
+    if (event.data == YT.PlayerState.PAUSED) {
+        // this could also be pause. idk
+        audio.mute();
+    }
+    if (event.data == YT.PlayerState.PLAYING) {
+        // or unpause....
+        audio.unMute();
+    }
 }
 
 function sleep(milliseconds) {
     var start = new Date().getTime();
-    while (true) {
-        if ((new Date().getTime() - start) > milliseconds){
-            break;
-        }
-    }
+    while ((new Date().getTime() - start) - milliseconds < 0);
 }
 
 window.onscroll = function () { window.scrollTo(0, 0); };
