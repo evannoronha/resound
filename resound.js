@@ -72,11 +72,11 @@ function onYouTubePlayerAPIReady() {
             rel: 0,     
             autoplay: 1,
             showinfo: 0,
-            disablekb: 1,
-            events: {
+            disablekb: 1
+        },
+        events: {
                 'onReady': onAudioPlayerReady,
                 'onStateChange': onAudioStateChange
-            }
         }
     });
 }
@@ -87,26 +87,14 @@ function onVideoPlayerReady(event) {
 
 // I'm having some problems adding functions to the plater objects. neither of these work.
 function onAudioPlayerReady(event) {
-    audio.fadeOut = new function() {
-        for (var i = 100; i >= 0; i -= 5) {
-            audio.setVolume(i);
-            sleep(400);
-        }
-    }
 
-    audio.fadeIn = new function() {
-        for (var i = 0; i <= 100; i += 5) {
-            audio.setVolume(i);
-            sleep(400);
-        }
-    }    
 }
 
 
 function onAudioStateChange(event) {
     if (event.data == YT.PlayerState.ENDED) {
-        event.target.seekTo(AUDIO_START_TIME);
         event.target.playVideo();
+        event.target.seekTo(audioStartTime);
     }
 }
 
@@ -121,10 +109,9 @@ function onVideoStateChange(event) {
     }
 
     if (event.data == YT.PlayerState.ENDED) {
+        event.target.playVideo();
+        event.target.seekTo(videoStartTime);
         audio.seekTo(audioStartTime);
-        video.playVideo();
-        video.seekTo(videoStartTime);
-        
     }
 }
 
