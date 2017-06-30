@@ -1,13 +1,12 @@
-// Load the IFrame Player API code asynchronously.
-
 var tag = document.createElement('script');
 tag.src = "https://www.youtube.com/player_api";
 var firstScriptTag = document.getElementsByTagName('script')[0];
 firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
-// Replace the 'ytplayer' element with an <iframe> and
-// YouTube player after the API code downloads.
 var video, audio;
+
+var videoURL = '9tG-xwv0kw0';
+var musicURL =  'feA64wXhbjo';
 var audioStartTime = 0;
 var videoStartTime = 0;
 var audioEndTime = 0;
@@ -19,9 +18,9 @@ function onYouTubePlayerAPIReady() {
     var params = {};
 
 
-    var videoURL = 'RpkM9bDJrxA';
-    var musicURL =  'feA64wXhbjo';
 
+    // extract possible "params" from the URL. It looks like a get request and walks like a
+    //      get request but I'm really just reading strings....
     for (var i = 0; i < parts.length; i++) {
         var nv = parts[i].split('=');
         if (!nv[0]) continue;
@@ -56,7 +55,6 @@ function onYouTubePlayerAPIReady() {
             'onReady': onVideoPlayerReady,
             'onStateChange': onVideoStateChange
         }
-        
     });
 
     
@@ -75,51 +73,50 @@ function onYouTubePlayerAPIReady() {
             disablekb: 1
         },
         events: {
-                'onReady': onAudioPlayerReady,
-                'onStateChange': onAudioStateChange
+            'onReady': onAudioPlayerReady,
+            'onStateChange': onAudioStateChange
         }
     });
 }
 
 function onVideoPlayerReady(event) {
-    video.mute();
+    event.target.playVideo();
 }
 
-// I'm having some problems adding functions to the plater objects. neither of these work.
 function onAudioPlayerReady(event) {
-
+    event.target.playVideo();
 }
-
 
 function onAudioStateChange(event) {
     if (event.data == YT.PlayerState.ENDED) {
+        audio.seekTo(audioStartTime);
         event.target.playVideo();
-        event.target.seekTo(audioStartTime);
     }
 }
 
+// make the audio player act like the video player
 function onVideoStateChange(event) {
     if (event.data == YT.PlayerState.PAUSED) {
-        // this could also be pause. idk
-        audio.mute();
+        // this could also be mute. idk
+        audio.pauseVideo();
     }
     if (event.data == YT.PlayerState.PLAYING) {
-        // or unpause....
-        audio.unMute();
+        // or unmute....
+        audio.playVideo();
     }
 
     if (event.data == YT.PlayerState.ENDED) {
-        event.target.playVideo();
-        event.target.seekTo(videoStartTime);
         audio.seekTo(audioStartTime);
+        event.target.seekTo(videoStartTime);
+        video.playVideo();
     }
 }
 
-function sleep(milliseconds) {
-    var start = new Date().getTime();
-    while ((new Date().getTime() - start) - milliseconds < 0);
-}
 
+// prevents the user from seeing anything below the main video player.
+//      this is really hackish but the youtube iframe won't play audio
+//      if the video isn't visible on the page        
 window.onscroll = function () { window.scrollTo(0, 0); };
 
-
+// favorites:
+//  ?audiostart=20&video=cIwTYL1fwJk&videostart=20&videoend=40
